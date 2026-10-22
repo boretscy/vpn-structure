@@ -1,0 +1,152 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "inbounds": [
+    {
+      "type": "vless",
+      "tag": "vless-in",
+      "listen": "::",
+      "listen_port": 443,
+      "tcp_fast_open": true,
+      "users": [
+        {
+          "uuid": "${ES_VLESS_UUID_CLIENT1}",
+          "flow": "xtls-rprx-vision"
+        },
+        {
+          "name": "antonphone",
+          "uuid": "${ES_VLESS_UUID_PHONE}",
+          "flow": "xtls-rprx-vision"
+        }
+      ],
+      "tls": {
+        "enabled": true,
+        "server_name": "gateway.icloud.com",
+        "reality": {
+          "enabled": true,
+          "handshake": {
+            "server": "gateway.icloud.com",
+            "server_port": 443
+          },
+          "private_key": "${ES_REALITY_PRIVATE_KEY}",
+          "short_id": [
+            "${ES_REALITY_SHORT_ID}"
+          ]
+        }
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "hy2-in",
+      "listen": "::",
+      "listen_port": 443,
+      "users": [
+        {
+          "password": "${ES_HY2_PASS_CLIENT1}"
+        },
+        {
+          "name": "antonphone",
+          "password": "${ES_HY2_PASS_PHONE}"
+        }
+      ],
+      "tls": {
+        "enabled": true,
+        "certificate_path": "/etc/sing-box/cert.pem",
+        "key_path": "/etc/sing-box/key.pem"
+      },
+      "masquerade": {
+        "type": "proxy",
+        "url": "https://gateway.icloud.com"
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "socks-test-in",
+      "listen": "127.0.0.1",
+      "listen_port": 10808
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "direct",
+      "tag": "direct"
+    },
+    {
+      "type": "urltest",
+      "tag": "ai_failover",
+      "outbounds": [
+        "h1_se2",
+        "h1_fi3"
+      ],
+      "url": "https://www.google.com/generate_204",
+      "interval": "1m",
+      "tolerance": 50
+    },
+    {
+      "type": "vless",
+      "tag": "h1_se2",
+      "server": "${H1_SE2_DOMAIN}",
+      "server_port": 443,
+      "uuid": "${H1_SE2_UUID}",
+      "flow": "",
+      "tls": {
+        "enabled": true,
+        "server_name": "${H1_SE2_DOMAIN}",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "firefox"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "${H1_SE2_PUBKEY}",
+          "short_id": "${H1_SE2_SHORT_ID}"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "h1_fi3",
+      "server": "${H1_FI3_DOMAIN}",
+      "server_port": 443,
+      "uuid": "${H1_FI3_UUID}",
+      "flow": "",
+      "tls": {
+        "enabled": true,
+        "server_name": "${H1_FI3_DOMAIN}",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "firefox"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "${H1_FI3_PUBKEY}",
+          "short_id": "${H1_FI3_SHORT_ID}"
+        }
+      }
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "domain_suffix": [
+          "google.com",
+          "googleapis.com",
+          "gstatic.com",
+          "googleusercontent.com",
+          "anthropic.com",
+          "claude.ai",
+          "openai.com"
+        ],
+        "outbound": "ai_failover"
+      }
+    ],
+    "final": "direct"
+  },
+  "experimental": {
+    "clash_api": {
+      "external_controller": "127.0.0.1:9090"
+    }
+  }
+}

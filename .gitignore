@@ -1,0 +1,21 @@
+# Local secret files and keys
+.env
+.vpn_secrets
+*secret*
+*password*
+*.key
+*.pem
+*.crt
+id_*
+*.log
+
+# OS & Temp files
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+*~
+
+# Binaries
+bin/
+*.exe

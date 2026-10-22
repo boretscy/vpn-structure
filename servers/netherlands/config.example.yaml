@@ -1,0 +1,64 @@
+# ==============================================================================
+# Hysteria 2 Server Configuration - Netherlands Node (YOUR_NL_SERVER_IP)
+# Path on server: /etc/hysteria/config.yaml
+# ==============================================================================
+
+listen: :443
+
+tls:
+  cert: /etc/hysteria/server.crt
+  key: /etc/hysteria/server.key
+
+auth:
+  type: userpass
+  userpass:
+    macbook: "${NL_HY2_PASS_MACBOOK}"
+    pc: "${NL_HY2_PASS_PC}"
+    phone: "${NL_HY2_PASS_PHONE}"
+
+bandwidth:
+  up: 100 mbps
+  down: 500 mbps
+
+quic:
+  initStreamReceiveWindow: 8388608
+  maxStreamReceiveWindow: 8388608
+  initConnReceiveWindow: 20971520
+  maxConnReceiveWindow: 20971520
+
+sniff:
+  enable: true
+  timeout: 2s
+  rewriteDomain: false
+
+masquerade:
+  type: proxy
+  proxy:
+    url: https://www.bing.com
+    rewriteHost: true
+
+outbounds:
+  - name: h1_us_proxy
+    type: socks5
+    socks5:
+      addr: 127.0.0.1:40001
+  - name: direct4
+    type: direct
+    direct:
+      mode: '4'
+
+acl:
+  inline:
+    - h1_us_proxy(suffix:google.com)
+    - h1_us_proxy(suffix:googleapis.com)
+    - h1_us_proxy(suffix:gstatic.com)
+    - h1_us_proxy(suffix:googleusercontent.com)
+    - h1_us_proxy(suffix:gemini.google.com)
+    - h1_us_proxy(suffix:anthropic.com)
+    - h1_us_proxy(suffix:claude.ai)
+    - h1_us_proxy(suffix:openai.com)
+    - h1_us_proxy(suffix:chatgpt.com)
+    - direct4(all)
+
+dns:
+  ipv4Only: true
